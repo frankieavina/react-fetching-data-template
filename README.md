@@ -1,4 +1,4 @@
-# Fetching template with Pokemon search application
+# Fetching data template with Pokemon search application
 
 In this application I show different ways about fecthing information from an api. Some are better then others just depeds on the use case. From my expirence React Query has been the best more effective way to fetch/retrieve data so I will be talking about how to set up later.
 
