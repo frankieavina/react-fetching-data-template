@@ -4,6 +4,20 @@ import "./App.css";
 import pokemonData from "./pokemonapi.json";
 import React, { useState } from "react";
 
+import {
+  useQuery,
+  useMutation,
+  useQueryClient
+} from '@tanstack/react-query'
+import axios from "axios";
+
+
+const fetchPokemon = async (url) => {
+  const { data } = await axios.get(url);;
+  return data;
+};
+
+
 function App() {
   const [pokemonList] = useState(pokemonData.results);
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,19 +28,99 @@ function App() {
   );
 
   //----------------------------------Main Focus ------------------------------------//
-  const showPokemon = async (url) => {
-    //event.preventDefault();
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Error fetching Pokemon: ${response.statusText}`);
-      return;
-    }
+  // const showPokemon = async (url) => {
+  //   //we are not handling the error or loading state in this example
+  //   //also the searchTerm isnt in sync with the response 
+  //   //ex. We are searching for a pokemon data 1 then we call for pokemon data 2. But sometimes
+  //   // what happens is we get the data for 2 first then 1. 
+  //   //SOOO... our state is out of sync with our fetch call !!!
+  //   const response = await fetch(url);
+  //   const data = await response.json();
+  //   setSelectedPokemon(data);
+  // };
 
-    const data = await response.json();
-    setSelectedPokemon(data);
-  };
+  //This is what react docs recommend to fetch data
+  // useEffect(() => {
+  //   let ignore = false;
+  //   setBio(null);
+  //   fetchBio(person).then(result => {
+  //     if (!ignore) {
+  //       setBio(result);
+  //     }
+  //   });
+  //   if you return inside a useEffect its called as a clean up
+  //   return () => {
+  //     ignore = true;
+  //   };
+  // }, [person]);
 
+
+  // other common way is doing it in a try catch using the combination of both above but
+  // there is soooo much code especially when you have to make it into its own reusable 
+  // component and have to use context 
+  // useEffect(() => {
+  //   let ignore = false
+  //   const handleFetchPokemon = async () => {
+  //      setPokemon(nulL)
+  //      setIsLoading (true)
+  //      setError (nulL)
+  //      try {
+  //        const res = await fetch(*https://pokeapi.co/api/v2/pokemon/${id}*)
+  //        if (ignore){
+  //          return
+  //        }
+  //        if (res.ok === false){
+  //          throw new Error(`Error fetching pokemon #${id}`)
+  //         }
+  //   
+  //         const json = await res. json()
+  //
+  //         setPokemon (json)
+  //         setIsLoading (false)
+  //        }catch (e) {
+  //          setError(message)
+  //          setIsLoading (false)
+  //        }
+  //    }
+  //    handleFetchPokemon ()
+  //    return () => {
+  //      ignore = true
+  //    }
+  // }, [id])
   //----------------------------------------------------------------------------------//
+  // *********************************Best Solution = React Query *******************************************//  
+  // React query is not a data fetching library. Its an async state manager that is acutely
+  // aware of the needs of the server state
+  // https://tanstack.com/query/latest/docs/framework/react/quick-start
+  // const queryClient = useQueryClient()
+
+  // // Queries
+  // const query = useQuery({ queryKey: ['todos'], queryFn: getTodos })
+
+  // // Mutations
+  // const mutation = useMutation({
+  //   mutationFn: postTodo,
+  //   onSuccess: () => {
+  //     // Invalidate and refetch
+  //     queryClient.invalidateQueries({ queryKey: ['todos'] })
+  //   },
+  // })
+
+  // Use the useQuery hook to fetch the data
+  const { data, isLoading, error } = useQuery(
+    ['pokemon'], 
+    fetchPokemon,
+    {
+      onSuccess: (data) => {
+        // Save the data to useState when the query is successful
+        setSelectedPokemon(data);
+      }
+    }
+  );
+// ********************************************************************************************************//
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>An error occurred: {error.message}</div>;
 
   return (
     <div className="App">
